@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+__author__ = "Mauro D. Sauco"
+__license__ = "GPL"
+__email__ = "mauro@xxxxx.net"
+
+from sys import argv
+from xml.dom import minidom  
+from base64 import b64encode
+import argparse
+
+# set defaluts
+default_fill = "4D4D4D"
+default_stroke = "4D4D4D"
+default_stroke_width = 5
+defaul_size = "100x100"
+
+#parse arguments
+parser = argparse.ArgumentParser(description="converts svg to drawio object")
+parser.add_argument('filename',type=str, help='input file')
+parser.add_argument('-f', '--fill-color', type=str, metavar='', 
+                    help='Fill fall-back color default: D4D4D4', default=default_fill)
+parser.add_argument('-t', '--stroke-color', type=str, metavar='', 
+                    help='Stroke fall-back color default: D4D4D4', default=default_stroke)
+parser.add_argument('-w', '--stroke-width', type=int, metavar='', 
+                    help='Stroke fall-bak width default:  5', default=default_stroke_width)
+parser.add_argument('-s', '--size', type=str, metavar='', 
+                    help='Object size default: 100x100', default=defaul_size)
+parser.add_argument('-o', '--output-file', type=str, metavar='', 
+                    help='Output file name', default=None)
+parser.add_argument('-d', '--debug', action="store_true", 
+                    help='print resulting root svg (xml)')
+args = parser.parse_args()
+
+#load the file
+dom = minidom.parse(args.filename)
+root = dom.getElementsByTagName('svg')[0]
+
+def get_attribute(element, attribute, elsevalue):
+    """attemps to get the attribute from the element 
+    or the parent element if not returns elsevalue"""
+    att = element.attributes.get(attribute)
+    if att:
+        att = att.value
+    else:
+        att = element.parentNode.attributes.get(attribute)
+        if att:
+            att = att.value
+        else: 
+            return elsevalue
+    return att
+
+# insert the class attribute to each path
+stcount = 0; cssatt = "" 
+for element in root.getElementsByTagName('path'):
+    element.setAttribute("class",f"path{stcount}")
+    fill = get_attribute(element, 'fill', '#' + args.fill_color)
+    stroke = get_attribute(element, 'stroke', '#' + args.stroke_color)
+    stroke_width = get_attribute(element, 'stroke-width', args.stroke_width)
+
+    cssatt += (f"\n.path{stcount}{{"
+               f'fill:{fill}; '
+               f'stroke:{stroke}; '
+               f'stroke-width:{stroke_width}}} ' 
+              )
+    stcount += 1 
+
+# create the stylesheet
+style = dom.createElement("style")
+css = dom.createTextNode(cssatt)
+style.appendChild(css)
+root.appendChild(style)
+
+#encode the output
+b64root = b64encode(root.toxml().encode('ascii'))
+image_style = f'style="shape=image;editableCssRules=.*;image=data:image/svg+xml,{b64root.decode()}"'
+size = args.size.split('x')
+image_geometry = f'width="{size[0]}" height="{size[1]}"'
+
+# the following was basically reverse engineered. 
+# I am sure there are better ways ..
+outputxml = (f'<mxGraphModel>'
+                '<root>'
+                    '<mxCell id="0"/>'
+                    '<mxCell id="1" parent="0"/>'
+                    f'<mxCell {image_style} vertex="1" parent="1">'
+                        f'<mxGeometry {image_geometry} as="geometry"/>'
+                    '</mxCell>'
+                '</root>'
+            '</mxGraphModel>')
+
+
+if __name__ == '__main__':
+    # write the new file
+    if not args.output_file:
+        args.output_file = args.filename.split(".")[0] + ".drawio"
+
+    if args.debug:
+        print(minidom.parseString(outputxml).toprettyxml())
+        print(root.toprettyxml())
+    else:
+        open(args.output_file, "w").write(outputxml)
