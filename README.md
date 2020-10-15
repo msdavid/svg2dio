@@ -2,9 +2,9 @@
 Converts SVG files to drawio/diagrams.net format
 
 
-git clone https://github.com/msdavid/svg2dio.git
-cd svg2dio
-chmod +x svg2dio
+git clone https://github.com/msdavid/svg2dio.git  
+cd svg2dio  
+chmod +x svg2dio  
 
 usage: svg2dio [-h] [-f] [-t] [-w] [-s] [-o] [-d] filename
 
