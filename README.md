@@ -3,7 +3,7 @@ Converts SVG files to drawio/diagrams.net format
 svg files can be imported into diagrams.net but you can't change the fill color, stroke color or width
 files converted with this tool will give you options to customize colors in the style panel.
 
-![screenshot](https://github.com/msdavid/svg2dio/img/screenshot.png)
+![screenshot](https://github.com/msdavid/svg2dio/blob/main/img/screenshot.png)
 
 
 git clone https://github.com/msdavid/svg2dio.git  
