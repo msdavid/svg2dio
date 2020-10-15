@@ -1,15 +1,12 @@
 # svg2dio
 Converts SVG files to drawio/diagrams.net format
 
-usage:
+
 git clone https://github.com/msdavid/svg2dio.git
 cd svg2dio
-
 chmod +x svg2dio
 
-sage: svg2dio [-h] [-f] [-t] [-w] [-s] [-o] [-d] filename
-
-converts svg to drawio object
+usage: svg2dio [-h] [-f] [-t] [-w] [-s] [-o] [-d] filename
 
 positional arguments:
   filename              input file
@@ -24,7 +21,7 @@ optional arguments:
   -d, --debug           print resulting root svg (xml)
 
 
-eample: 
+example: 
 ./svg2dio -s 200x200 -f 4A4A4A -w 3 file.svg -o myfile.dio
 
 
