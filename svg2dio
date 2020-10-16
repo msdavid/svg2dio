@@ -51,7 +51,7 @@ root = dom.getElementsByTagName('svg')[0]
 
 def get_attribute(element, attribute, elsevalue):
     """attemps to get the attribute from the element 
-    or the parent element if not returns elsevalue"""
+    or the parent element if not found, returns elsevalue"""
     att = element.attributes.get(attribute)
     if att:
         att = att.value
@@ -64,19 +64,23 @@ def get_attribute(element, attribute, elsevalue):
     return att
 
 # insert the class attribute to each path
-stcount = 0; cssatt = "" 
+stcount = 1; cssatt = ""; found={}
 for element in root.getElementsByTagName('path'):
-    element.setAttribute("class",f"path{stcount}")
     fill = get_attribute(element, 'fill', '#' + args.fill_color)
     stroke = get_attribute(element, 'stroke', '#' + args.stroke_color)
     stroke_width = get_attribute(element, 'stroke-width', args.stroke_width)
-
-    cssatt += (f"\n.path{stcount}{{"
-               f'fill:{fill}; '
-               f'stroke:{stroke}; '
-               f'stroke-width:{stroke_width}}} ' 
-              )
-    stcount += 1 
+    if fill in found.keys():
+        index = found[fill]
+    else:
+        index = stcount
+        found[fill] = index
+        cssatt += (f'\n.path{stcount}{{'
+                f'fill:{fill}; '
+                f'stroke:{stroke}; '
+                f'stroke-width:{stroke_width}}} ' 
+                )
+        stcount += 1 
+    element.setAttribute("class",f"path{index}")
 
 # create the stylesheet
 style = dom.createElement("style")
